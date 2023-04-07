@@ -8,25 +8,35 @@ class Agent:
         self.gamma = gamma
         self.epsilon = epsilon
         self.PossibleActionTable = PossibleActionTable
+        self.numagents = numagents
         self.Qtable = []
         for i in range(0,numagents):
             self.Qtable.append(np.zeros((len(PossibleActionTable),value//increment), dtype = np.double))
         self.numactions = 0
+        self.PrevActionTable = ["Bid" for _ in range(0,numagents)]
 
-    def updateQtable(reward): # Q[state, action] = Q[state, action] + lr * (reward + gamma * np.max(Q[new_state, :]) — Q[state, action])
-        for n in range(0,Agent.numagents):
-            for i in range(0,len(Agent.Qtable)):
+    def updateQtable(self, reward): # Q[state, action] = Q[state, action] + lr * (reward + gamma * np.max(Q[new_state, :]) — Q[state, action])
+        for n in range(0,self.numagents):
+            for i in range(0,value//increment):
                 for k in range(0,1):
-                    Agent.Qtable[n][k,i] = Agent.Qtable[n][k,i] + Agent.alpha*(reward + Agent.gamma * np.max(Agent.Qtable[n][reward,:]-Agent.Qtable[n][k,i]))
+                    # new_state = 
+                    self.Qtable[n][k,i] = self.Qtable[n][k,i] + self.alpha*(reward + self.gamma * np.max(self.Qtable[n][reward,:])-self.Qtable[n][k,i]) 
+                    # TODO: FIX Q TABLE, IDK WHAT REWARD SHOULD BE
     
-    def action():
-            Agent.numactions += Agent.numactions
+    def action(self):
+            self.numactions += self.numactions
             RoundActionTable = []
-            for i in range(0,Agent.numagents):
-                if np.random.uniform() < Agent.epsilon:
-                    RoundActionTable.append(Agent.PossibleActionTable[random.randint(0,1)])
+            for i in range(0,self.numagents):
+                if self.PrevActionTable[i] == "Pass":
+                    self.currentaction = "Pass"
+                    RoundActionTable.append(self.currentaction)
+                elif np.random.uniform() < self.epsilon:
+                    self.currentaction = self.PossibleActionTable[random.randint(0,1)]
+                    RoundActionTable.append(self.currentaction)
                 else:
-                    RoundActionTable.append(Agent.PossibleActionTable[max(Agent.Qtable[Agent.numactions])])
+                    self.currentaction = self.PossibleActionTable[int(max(self.Qtable[i][:,self.numactions]))]
+                    RoundActionTable.append(self.currentaction)
+            self.PrevActionTable = RoundActionTable
             return(RoundActionTable)
 
 
@@ -39,27 +49,25 @@ class Auction:
         self.AuctionHistory = []
         self.numagents = numagents
         self.winningbidder = -1
+        self.winningbid = 0
 
-    def step():
+    def step(self, Agent):
         CurrentActions = Agent.action()
-        Auction.AuctionHistory.append(CurrentActions)
-        if Auction.CurrentAction.count("Bid") > 1:
-            currentvalue = currentvalue + Auction.increment
+        self.AuctionHistory.append(CurrentActions)
+        if CurrentActions.count("Bid") > 1:
+            self.winningbid = self.winningbid + self.increment
         else:
-            Auction.winningbid = currentvalue
-            Auction.isactive == False
-            return(Auction.winningbid)
+            self.isactive = False
+        return(self.winningbid)
         
-
-
-    def run_auction():
-        while Auction.isactive == True:
-            Auction.step()
-        Auction.winningbidder = Auction.AuctionHistory.index("Bid")
-        if Auction.winningbidder == -1:
-            reward = Auction.fee*-1
+    def run_auction(self, Agent):
+        while self.isactive == True:
+            self.step(Agent)
+        self.winningbidder = self.AuctionHistory[-1].index("Bid")
+        if self.winningbidder == -1:
+            reward = self.fee*-1
         else:
-            reward = Auction.value - Auction.winningbid - Auction.fee
+            reward = self.value - self.winningbid - self.fee
         Agent.updateQtable(reward)
 
 # Agents: self, numagents, value, increment, alpha, epsilon, gamma
@@ -74,4 +82,4 @@ gamma = 0.8
 fee = 1
 B = Agent(numagents, value, increment, alpha, epsilon, gamma, PossibleActionTable=["Bid", "Pass"])
 A = Auction(numagents, value, increment, fee)
-Auction.run_auction()
+A.run_auction(B)
